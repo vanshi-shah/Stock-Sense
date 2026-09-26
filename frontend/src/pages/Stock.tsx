@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/lib/supabase";
 import {
   Table,
   TableBody,
@@ -38,6 +39,22 @@ export default function Stock() {
   const [onHand, setOnHand] = useState("");
   const [freeToUse, setFreeToUse] = useState("");
 
+  useEffect(() => {
+    fetchStocks();
+  }, []);
+
+  const fetchStocks = async () => {
+    const { data, error } = await supabase
+      .from('stocks')
+      .select('*');
+    
+    if (error) {
+      console.error('Error fetching stocks:', error);
+    } else if (data) {
+      setStocks(data);
+    }
+  };
+
   const filteredStocks = stocks.filter((s) => 
     s.product.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -60,26 +77,45 @@ export default function Stock() {
     setIsDialogOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!productName || !unitCost || !onHand || !freeToUse) return;
 
     if (editingId) {
-      setStocks(prev => prev.map(s => s.id === editingId ? {
-        ...s,
-        product: productName,
-        cost: unitCost,
-        onHand: parseInt(onHand),
-        freeToUse: parseInt(freeToUse)
-      } : s));
-    } else {
-      const newItem: StockItem = {
-        id: Math.random().toString(36).substr(2, 9),
+      const updatedItem = {
         product: productName,
         cost: unitCost,
         onHand: parseInt(onHand),
         freeToUse: parseInt(freeToUse)
       };
-      setStocks(prev => [...prev, newItem]);
+
+      const { error } = await supabase
+        .from('stocks')
+        .update(updatedItem)
+        .eq('id', editingId);
+
+      if (!error) {
+        setStocks(prev => prev.map(s => s.id === editingId ? { ...s, ...updatedItem } : s));
+      } else {
+        console.error('Error updating stock:', error);
+      }
+    } else {
+      const newItem = {
+        product: productName,
+        cost: unitCost,
+        onHand: parseInt(onHand),
+        freeToUse: parseInt(freeToUse)
+      };
+
+      const { data, error } = await supabase
+        .from('stocks')
+        .insert([newItem])
+        .select();
+
+      if (!error && data) {
+        setStocks(prev => [...prev, data[0]]);
+      } else {
+        console.error('Error adding stock:', error);
+      }
     }
     setIsDialogOpen(false);
   };
