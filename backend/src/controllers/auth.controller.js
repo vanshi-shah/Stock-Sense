@@ -89,4 +89,27 @@ const resetPassword = asyncHandler(async (req, res) => {
   return res.json({ success: true, message: "Password reset OTP sent to email" });
 });
 
-module.exports = { register, login, resetPassword };
+const me = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, error: "Unauthorized" });
+  }
+
+  // Fetch role from users table
+  const { data: userData, error } = await supabaseAdmin
+    .from('users')
+    .select('role')
+    .eq('id', req.user.id)
+    .single();
+
+  const role = userData?.role || 'user';
+
+  return res.json({
+    success: true,
+    user: {
+      ...req.user,
+      role
+    }
+  });
+});
+
+module.exports = { register, login, resetPassword, me };

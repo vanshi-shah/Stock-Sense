@@ -18,6 +18,7 @@ const operationsRoutes    = require("./routes/operations.routes");
 const stockMovesRoutes    = require("./routes/stockmoves.routes");
 const stockQtysRoutes     = require("./routes/stockquantities.routes");
 const dashboardRoutes     = require("./routes/dashboard.routes");
+const usersRoutes         = require("./routes/users.routes");
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use("/api/operations",       operationsRoutes);
 app.use("/api/stock-moves",      stockMovesRoutes);
 app.use("/api/stock-quantities", stockQtysRoutes);
 app.use("/api/dashboard",        dashboardRoutes);
+app.use("/api/users",            usersRoutes);
 
 // ── Zod Validation Error Handler ───────────────────────────────────────────
 app.use((err, req, res, next) => {
