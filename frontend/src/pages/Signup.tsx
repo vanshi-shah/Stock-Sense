@@ -9,9 +9,14 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 const schema = z.object({
+  loginId: z.string().min(6, "Login ID must be at least 6 characters").max(12, "Login ID must be at most 12 characters"),
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string()
+    .min(9, "Password must be more than 8 characters")
+    .regex(/[a-z]/, "Password must contain a lowercase letter")
+    .regex(/[A-Z]/, "Password must contain an uppercase letter")
+    .regex(/[^a-zA-Z0-9]/, "Password must contain a special character"),
+  confirmPassword: z.string(),
   terms: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions",
   }),
@@ -69,6 +74,18 @@ export default function Signup() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-[22px]">
               
+              <div className="space-y-1">
+                <div className="relative">
+                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-[12px] font-medium text-[#73716C] z-10">Login ID</label>
+                  <Input 
+                    placeholder="yourusername" 
+                    className="h-14 px-4 bg-transparent border-[#B7A58A] text-[#252525] placeholder:text-[#73716C]/40 rounded-xl focus-visible:ring-1 focus-visible:ring-[#A66A4C] focus-visible:border-[#A66A4C] transition-all"
+                    {...register("loginId")} 
+                  />
+                </div>
+                {errors.loginId && <p className="text-[12px] text-[#A66A4C] ml-1 mt-1 font-medium">{errors.loginId.message}</p>}
+              </div>
+
               <div className="space-y-1">
                 <div className="relative">
                   <label className="absolute -top-2.5 left-3 bg-white px-1 text-[12px] font-medium text-[#73716C] z-10">Email Address</label>

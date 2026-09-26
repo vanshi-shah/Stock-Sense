@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireStaff, requireManager } = require('../middleware/auth');
 const {
   listProducts,
   getProduct,
@@ -12,10 +12,10 @@ const router = Router();
 
 router.use(requireAuth);
 
-router.get('/', listProducts);
-router.get('/:id', getProduct);
-router.post('/', createProduct);
-router.put('/:id', updateProduct);
-router.delete('/:id', deleteProduct);
+router.get('/', requireStaff, listProducts);
+router.get('/:id', requireStaff, getProduct);
+router.post('/', requireManager, createProduct);
+router.put('/:id', requireManager, updateProduct);
+router.delete('/:id', requireManager, deleteProduct);
 
 module.exports = router;

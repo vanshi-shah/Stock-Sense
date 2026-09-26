@@ -22,6 +22,7 @@ export function useLogin() {
 
 // ─── Signup ───────────────────────────────────────────────────────────────────
 interface SignupPayload {
+  loginId: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -33,6 +34,11 @@ export function useSignup() {
       const { data, error } = await supabase.auth.signUp({
         email: payload.email,
         password: payload.password,
+        options: {
+          data: {
+            login_id: payload.loginId,
+          }
+        }
       });
       if (error) throw error;
       return data;
