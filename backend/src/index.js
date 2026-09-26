@@ -28,6 +28,11 @@ app.use(express.json());
 // ── Health Check ───────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => res.json({ ok: true, timestamp: new Date().toISOString() }));
 
+// ── Default Route ──────────────────────────────────────────────────────────
+app.get("/", (_req, res) => {
+  res.status(200).json({ success: true, message: "StockSense API is running" });
+});
+
 // ── API Routes ─────────────────────────────────────────────────────────────
 app.use("/api/auth",             authRoutes);
 app.use("/api/submissions",      submissionRoutes);
