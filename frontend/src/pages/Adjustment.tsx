@@ -1,16 +1,66 @@
-import { useState } from "react";
-import { Settings } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Settings, Save, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
 
 export default function Adjustment() {
-  const [product, setProduct] = useState("");
+  const [products, setProducts] = useState<any[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState("");
   const [quantity, setQuantity] = useState("");
   const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
 
-  const handleSave = () => {
-    // Form submission logic can be connected here
-    console.log({ product, quantity, reason });
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    const { data, error } = await supabase.from('stocks').select('*');
+    if (!error && data) {
+      setProducts(data);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!selectedProductId || !quantity) {
+      setMessage({ type: 'error', text: 'Please select a product and enter a quantity.' });
+      return;
+    }
+
+    setLoading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      // Find current stock
+      const product = products.find(p => p.id === selectedProductId);
+      if (!product) throw new Error("Product not found");
+
+      const adjustmentQty = parseInt(quantity);
+      if (isNaN(adjustmentQty)) throw new Error("Invalid quantity");
+
+      const newStock = (product.onHand || 0) + adjustmentQty;
+
+      // Update stock
+      const { error } = await supabase
+        .from('stocks')
+        .update({ onHand: newStock })
+        .eq('id', selectedProductId);
+
+      if (error) throw error;
+
+      setMessage({ type: 'success', text: `Successfully adjusted stock! New balance is ${newStock}.` });
+      setQuantity("");
+      setReason("");
+      fetchProducts(); // Refresh
+      
+    } catch (error: any) {
+      console.error(error);
+      setMessage({ type: 'error', text: error.message || 'Failed to apply adjustment.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -27,23 +77,39 @@ export default function Adjustment() {
         {/* Content - Direct Form */}
         <div className="p-6 md:p-12 flex flex-col max-w-2xl gap-8 relative">
 
+          {message.text && (
+            <div className={`p-4 rounded-xl flex items-center gap-3 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+              <AlertCircle size={18} />
+              <p className="font-medium text-sm">{message.text}</p>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
             <label className="text-[15px] font-semibold text-[#A66A4C] sm:w-32">Product:</label>
-            <Input
-              value={product}
-              onChange={(e) => setProduct(e.target.value)}
-              className="h-12 rounded-xl border-[#EAE6DE] bg-[#F5F2EC]/50 focus-visible:ring-[#A66A4C] focus-visible:border-[#A66A4C] text-[#292B2A] font-medium transition-all px-4 max-w-md w-full"
-            />
+            <select
+              value={selectedProductId}
+              onChange={(e) => setSelectedProductId(e.target.value)}
+              className="h-12 rounded-xl border-2 border-[#EAE6DE] bg-[#F5F2EC]/50 focus:ring-[#A66A4C] focus:border-[#A66A4C] text-[#292B2A] font-medium transition-all px-4 max-w-md w-full outline-none"
+            >
+              <option value="">Select a product...</option>
+              {products.map(p => (
+                <option key={p.id} value={p.id}>{p.product} (Current: {p.onHand})</option>
+              ))}
+            </select>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
-            <label className="text-[15px] font-semibold text-[#A66A4C] sm:w-32">Quantity:</label>
-            <Input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              className="h-12 rounded-xl border-[#EAE6DE] bg-[#F5F2EC]/50 focus-visible:ring-[#A66A4C] focus-visible:border-[#A66A4C] text-[#292B2A] font-medium transition-all px-4 max-w-md w-full"
-            />
+            <label className="text-[15px] font-semibold text-[#A66A4C] sm:w-32">Adjustment Qty:</label>
+            <div className="max-w-md w-full relative">
+              <Input
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="e.g. -5 or 10"
+                className="h-12 rounded-xl border-[#EAE6DE] bg-[#F5F2EC]/50 focus-visible:ring-[#A66A4C] focus-visible:border-[#A66A4C] text-[#292B2A] font-medium transition-all px-4 w-full"
+              />
+              <p className="text-xs text-[#73716C] mt-2">Use negative numbers to decrease stock.</p>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
@@ -51,6 +117,7 @@ export default function Adjustment() {
             <Input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
+              placeholder="e.g. Damage, Audit correction"
               className="h-12 rounded-xl border-[#EAE6DE] bg-[#F5F2EC]/50 focus-visible:ring-[#A66A4C] focus-visible:border-[#A66A4C] text-[#292B2A] font-medium transition-all px-4 max-w-md w-full"
             />
           </div>
@@ -58,9 +125,11 @@ export default function Adjustment() {
           <div className="pt-6 sm:pl-[152px]">
             <Button
               onClick={handleSave}
-              className="h-12 px-8 rounded-xl bg-[#292B2A] hover:bg-[#A66A4C] text-white font-medium transition-all shadow-md w-max"
+              disabled={loading}
+              className="h-12 px-8 rounded-xl bg-[#292B2A] hover:bg-[#A66A4C] text-white font-medium transition-all shadow-md w-max flex items-center gap-2"
             >
-              Save Adjustment
+              <Save size={18} />
+              {loading ? "Saving..." : "Save Adjustment"}
             </Button>
           </div>
         </div>

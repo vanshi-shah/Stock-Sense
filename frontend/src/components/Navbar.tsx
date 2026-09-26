@@ -27,7 +27,8 @@ export function Navbar() {
       path: "/operations",
       subItems: [
         { label: "Receipts", path: "/receipts" },
-        { label: "Deliveries", path: "/deliveries" }
+        { label: "Deliveries", path: "/deliveries" },
+        { label: "Adjustment", path: "/operations/adjustment" }
       ]
     },
     { label: "Stock", path: "/products" },
