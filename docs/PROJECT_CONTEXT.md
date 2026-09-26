@@ -21,6 +21,7 @@ shadcn/ui
 
 Backend & Database:
 Supabase MCP (PostgreSQL Database, Auth, Storage)
+node.js+Express
 
 Authentication:
 Supabase Auth (with OTP support)
