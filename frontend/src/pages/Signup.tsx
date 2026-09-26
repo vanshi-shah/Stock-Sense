@@ -8,18 +8,6 @@ import { useSignup } from "@/hooks/useAuth";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
-<<<<<<< Updated upstream
-const schema = z
-  .object({
-    email: z.string().email("Enter a valid email"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-=======
 const schema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -28,7 +16,6 @@ const schema = z.object({
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
->>>>>>> Stashed changes
 type FormData = z.infer<typeof schema>;
 
 export default function Signup() {
@@ -44,83 +31,10 @@ export default function Signup() {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = (data: FormData) => {
-    signup.mutate(data, {
-      onSuccess: (result) => {
-        // If email confirmation is required, Supabase returns a user but no session.
-        // The user needs to verify their email OTP before logging in.
-        if (result.session) {
-          // Auto-confirmed (email confirmation disabled in Supabase project settings)
-          navigate("/dashboard");
-        } else {
-          // Email confirmation required — send them to verify OTP page
-          navigate(`/verify-otp?email=${encodeURIComponent(data.email)}&type=signup`);
-        }
-      },
-    });
+    signup.mutate(data, { onSuccess: () => navigate("/dashboard") });
   };
 
   return (
-<<<<<<< Updated upstream
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-sm space-y-4 p-6 bg-card rounded-lg shadow-md border"
-      >
-        <h1 className="text-2xl font-semibold text-center mb-6">
-          Create an account
-        </h1>
-
-        <div>
-          <Input placeholder="Email" {...register("email")} />
-          {errors.email && (
-            <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div>
-          <Input
-            type="password"
-            placeholder="Password"
-            {...register("password")}
-          />
-          {errors.password && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <Input
-            type="password"
-            placeholder="Confirm Password"
-            {...register("confirmPassword")}
-          />
-          {errors.confirmPassword && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.confirmPassword.message}
-            </p>
-          )}
-        </div>
-
-        <Button type="submit" className="w-full" disabled={signup.isPending}>
-          {signup.isPending ? "Creating account…" : "Sign up"}
-        </Button>
-
-        {signup.isError && (
-          <p className="text-sm text-red-500 text-center">
-            {(signup.error as Error)?.message || "Signup failed. Please try again."}
-          </p>
-        )}
-
-        <div className="text-center text-sm text-muted-foreground mt-4">
-          Already have an account?{" "}
-          <Link to="/login" className="text-primary hover:underline">
-            Sign in
-          </Link>
-        </div>
-      </form>
-=======
     <div className="flex min-h-screen items-center justify-center bg-[#F5F2EC] font-['Inter'] selection:bg-[#B7A58A] selection:text-white p-4 md:p-8">
       
       <div className="flex w-full max-w-[1200px] bg-white rounded-[32px] overflow-hidden shadow-[0_20px_50px_rgb(41,43,42,0.1)] border-[4px] border-[#292B2A] min-h-[700px] flex-col-reverse md:flex-row">
@@ -244,7 +158,6 @@ export default function Signup() {
         </div>
 
       </div>
->>>>>>> Stashed changes
     </div>
   );
 }

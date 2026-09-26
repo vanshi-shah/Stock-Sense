@@ -9,11 +9,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 const schema = z.object({
-<<<<<<< Updated upstream
-  email: z.string().email("Enter a valid email"),
-=======
   email: z.string().email("Please enter a valid email address"),
->>>>>>> Stashed changes
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 type FormData = z.infer<typeof schema>;
@@ -29,60 +25,10 @@ export default function Login() {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = (data: FormData) => {
-    login.mutate(data, {
-      onSuccess: () => navigate("/dashboard"),
-    });
+    login.mutate(data, { onSuccess: () => navigate("/dashboard") });
   };
 
   return (
-<<<<<<< Updated upstream
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-sm space-y-4 p-6 bg-card rounded-lg shadow-md border"
-      >
-        <h1 className="text-2xl font-semibold text-center mb-6">Sign in</h1>
-
-        <div>
-          <Input placeholder="Email" {...register("email")} />
-          {errors.email && (
-            <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div>
-          <Input
-            type="password"
-            placeholder="Password"
-            {...register("password")}
-          />
-          {errors.password && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        <Button type="submit" className="w-full" disabled={login.isPending}>
-          {login.isPending ? "Signing in…" : "Sign in"}
-        </Button>
-
-        {login.isError && (
-          <p className="text-sm text-red-500 text-center">
-            {(login.error as Error)?.message || "Invalid credentials"}
-          </p>
-        )}
-
-        <div className="flex flex-col space-y-2 text-center text-sm text-muted-foreground mt-4">
-          <Link to="/reset-password" className="hover:underline">
-            Forgot password?
-          </Link>
-          <div>
-            Don't have an account?{" "}
-            <Link to="/signup" className="text-primary hover:underline">
-              Sign up
-            </Link>
-=======
     <div className="flex min-h-screen items-center justify-center bg-[#F5F2EC] font-['Inter'] selection:bg-[#B7A58A] selection:text-white p-4 md:p-8">
       
       <div className="flex w-full max-w-[1200px] bg-white rounded-[32px] overflow-hidden shadow-[0_20px_50px_rgb(41,43,42,0.1)] border-[4px] border-[#292B2A] min-h-[700px]">
@@ -178,7 +124,6 @@ export default function Login() {
             <p className="text-[#73716C] text-[11px] leading-relaxed">
               By logging in you agree to our term and that you have read our data policy.
             </p>
->>>>>>> Stashed changes
           </div>
         </div>
 
