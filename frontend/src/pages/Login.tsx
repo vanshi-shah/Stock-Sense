@@ -11,6 +11,7 @@ import { useState } from "react";
 const schema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  rememberMe: z.boolean().optional(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -83,8 +84,15 @@ export default function Login() {
 
               <div className="flex items-center justify-between pt-1">
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className="w-4 h-4 rounded border border-[#B7A58A] group-hover:border-[#A66A4C] flex items-center justify-center transition-colors">
-                    {/* Placeholder for real checkbox if needed, kept simple for aesthetic */}
+                  <div className="relative flex items-center justify-center w-4 h-4">
+                    <input 
+                      type="checkbox" 
+                      className="peer appearance-none w-4 h-4 rounded border border-[#B7A58A] checked:bg-[#A66A4C] checked:border-[#A66A4C] hover:border-[#A66A4C] transition-colors cursor-pointer"
+                      {...register("rememberMe")}
+                    />
+                    <svg className="absolute w-2.5 h-2.5 pointer-events-none opacity-0 peer-checked:opacity-100 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
                   </div>
                   <span className="text-[13px] font-medium text-[#252525]">Remember me</span>
                 </label>
