@@ -5,9 +5,15 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLogin } from "@/hooks/useAuth";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 
 const schema = z.object({
+<<<<<<< Updated upstream
   email: z.string().email("Enter a valid email"),
+=======
+  email: z.string().email("Please enter a valid email address"),
+>>>>>>> Stashed changes
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 type FormData = z.infer<typeof schema>;
@@ -15,10 +21,11 @@ type FormData = z.infer<typeof schema>;
 export default function Login() {
   const navigate = useNavigate();
   const login = useLogin();
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = (data: FormData) => {
@@ -28,6 +35,7 @@ export default function Login() {
   };
 
   return (
+<<<<<<< Updated upstream
     <div className="flex min-h-screen items-center justify-center bg-background">
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -74,9 +82,118 @@ export default function Login() {
             <Link to="/signup" className="text-primary hover:underline">
               Sign up
             </Link>
+=======
+    <div className="flex min-h-screen items-center justify-center bg-[#F5F2EC] font-['Inter'] selection:bg-[#B7A58A] selection:text-white p-4 md:p-8">
+      
+      <div className="flex w-full max-w-[1200px] bg-white rounded-[32px] overflow-hidden shadow-[0_20px_50px_rgb(41,43,42,0.1)] border-[4px] border-[#292B2A] min-h-[700px]">
+        
+        {/* Left Form Section */}
+        <div className="w-full md:w-[55%] p-8 md:p-12 lg:p-16 flex flex-col bg-white relative">
+          
+          <div className="flex items-center gap-3 mb-12">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#292B2A] shadow-md shadow-[#292B2A]/20">
+              <span className="font-['Outfit'] text-xl font-bold text-[#F5F2EC]">S</span>
+            </div>
+            <span className="font-['Outfit'] text-2xl font-bold text-[#292B2A] tracking-tight">StockSense</span>
+          </div>
+
+          <div className="flex-1 flex flex-col justify-center max-w-[420px]">
+            <h1 className="text-4xl font-bold tracking-tight text-[#292B2A] font-['Outfit'] mb-2">Welcome Back!</h1>
+            <p className="text-[#73716C] mb-8 text-[15px]">Please log in to your account.</p>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-[24px]">
+              
+              <div className="space-y-1">
+                <div className="relative">
+                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-[12px] font-medium text-[#73716C] z-10">Email Address</label>
+                  <Input 
+                    placeholder="name@company.com" 
+                    className="h-14 px-4 bg-transparent border-[#B7A58A] text-[#252525] placeholder:text-[#73716C]/40 rounded-xl focus-visible:ring-1 focus-visible:ring-[#A66A4C] focus-visible:border-[#A66A4C] transition-all"
+                    {...register("email")} 
+                  />
+                </div>
+                {errors.email && <p className="text-[12px] text-[#A66A4C] ml-1 mt-1 font-medium">{errors.email.message}</p>}
+              </div>
+
+              <div className="space-y-1">
+                <div className="relative">
+                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-[12px] font-medium text-[#73716C] z-10">Password</label>
+                  <Input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    className="h-14 px-4 bg-transparent border-[#B7A58A] text-[#252525] placeholder:text-[#73716C]/40 rounded-xl focus-visible:ring-1 focus-visible:ring-[#A66A4C] focus-visible:border-[#A66A4C] transition-all pr-12"
+                    {...register("password")} 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#B7A58A] hover:text-[#A66A4C] transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={20} strokeWidth={2} /> : <Eye size={20} strokeWidth={2} />}
+                  </button>
+                </div>
+                {errors.password && <p className="text-[12px] text-[#A66A4C] ml-1 mt-1 font-medium">{errors.password.message}</p>}
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className="w-4 h-4 rounded border border-[#B7A58A] group-hover:border-[#A66A4C] flex items-center justify-center transition-colors">
+                    {/* Placeholder for real checkbox if needed, kept simple for aesthetic */}
+                  </div>
+                  <span className="text-[13px] font-medium text-[#252525]">Remember me</span>
+                </label>
+                <Link to="/reset-password" className="text-[13px] font-medium text-[#A66A4C] hover:text-[#292B2A] transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
+
+              {login.isError && (
+                <div className="p-3 rounded-lg bg-red-50 text-center">
+                  <p className="text-[13px] text-red-600 font-medium">Invalid email or password.</p>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <Button 
+                  type="submit" 
+                  className="flex-1 h-14 rounded-xl bg-[#292B2A] text-white hover:bg-[#A66A4C] hover:shadow-lg hover:shadow-[#A66A4C]/20 transition-all font-['Outfit'] text-[16px] font-medium"
+                  disabled={login.isPending || isSubmitting}
+                >
+                  {login.isPending || isSubmitting ? "Logging in..." : "Login"}
+                </Button>
+                
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => navigate('/signup')}
+                  className="flex-1 h-14 rounded-xl border-2 border-[#EAE6DE] text-[#292B2A] bg-transparent hover:border-[#292B2A] hover:bg-transparent transition-all font-['Outfit'] text-[16px] font-medium"
+                >
+                  Create account
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          <div className="mt-12 max-w-[420px]">
+            <p className="text-[#73716C] text-[11px] leading-relaxed">
+              By logging in you agree to our term and that you have read our data policy.
+            </p>
+>>>>>>> Stashed changes
           </div>
         </div>
-      </form>
+
+        {/* Right Image Section */}
+        <div className="hidden md:block md:w-[45%] relative bg-[#292B2A]">
+          <img 
+            src="/login-hero.jpg" 
+            alt="StockSense Inventory" 
+            className="absolute inset-0 w-full h-full object-cover opacity-90"
+          />
+          {/* Subtle overlay to blend perfectly with border */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#292B2A]/40 to-transparent pointer-events-none" />
+        </div>
+
+      </div>
     </div>
   );
 }
