@@ -23,42 +23,88 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      const today = new Date().toISOString().split("T")[0];
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
       try {
+        // --- Stocks ---
         const { data: stocksData, error: stocksError } = await supabase.from('stocks').select('*');
         if (stocksError) throw stocksError;
-        
+
         let totalItems = 0;
         let lowStockAlerts = 0;
         const productsList: any[] = [];
 
         if (stocksData) {
           stocksData.forEach(item => {
-            totalItems += (item.onHand || 0);
-            if ((item.onHand || 0) < 10) lowStockAlerts++;
-            
+            totalItems += 1; // count distinct items, not quantities
+            if ((item.freeToUse || 0) <= 5) lowStockAlerts++;
+
             productsList.push({
               name: item.product,
               stock: item.onHand || 0,
-              trend: "N/A" // Real trend would require historical data
+              freeToUse: item.freeToUse || 0,
             });
           });
 
-          // Sort by stock descending to get top products
           productsList.sort((a, b) => b.stock - a.stock);
           setTopProducts(productsList.slice(0, 5));
         }
 
-        setStats(prev => ({
-          ...prev,
-          overview: {
-            totalItems,
-            lowStockAlerts,
-            recentActivity: 0 // Placeholder until activity logs table exists
-          }
-        }));
-        
-        // Activity data is empty as we don't have historical operations yet
-        setActivityData([]);
+        // --- Operations ---
+        const { data: opsData, error: opsError } = await supabase
+          .from('operations')
+          .select('type, status, schedule_date, created_at');
+        if (opsError) throw opsError;
+
+        const ops = opsData ?? [];
+
+        // Receipt stats (exclude done/canceled)
+        const activeReceipts = ops.filter(o => o.type === 'receipt' && o.status !== 'done' && o.status !== 'canceled');
+        const receiptPending = activeReceipts.length;
+        const receiptLate = activeReceipts.filter(o => o.schedule_date && o.schedule_date < today).length;
+        const receiptOperations = activeReceipts.filter(o => o.schedule_date && o.schedule_date > today).length;
+
+        // Delivery stats (exclude done/canceled)
+        const activeDeliveries = ops.filter(o => o.type === 'delivery' && o.status !== 'done' && o.status !== 'canceled');
+        const deliveryPending = activeDeliveries.length;
+        const deliveryLate = activeDeliveries.filter(o => o.schedule_date && o.schedule_date < today).length;
+        const deliveryWaiting = activeDeliveries.filter(o => o.status === 'waiting').length;
+        const deliveryOperations = activeDeliveries.filter(o => o.schedule_date && o.schedule_date > today).length;
+
+        // Recent activity: all operations in last 7 days
+        const recentActivity = ops.filter(o => o.created_at && o.created_at >= sevenDaysAgo).length;
+
+        // Activity chart data: group by type (receipt vs delivery) for last 7 days
+        const chartData = [
+          {
+            name: 'Receipts',
+            count: ops.filter(o => o.type === 'receipt').length,
+            done: ops.filter(o => o.type === 'receipt' && o.status === 'done').length,
+          },
+          {
+            name: 'Deliveries',
+            count: ops.filter(o => o.type === 'delivery').length,
+            done: ops.filter(o => o.type === 'delivery' && o.status === 'done').length,
+          },
+          {
+            name: 'Transfers',
+            count: ops.filter(o => o.type === 'transfer').length,
+            done: ops.filter(o => o.type === 'transfer' && o.status === 'done').length,
+          },
+          {
+            name: 'Adjustments',
+            count: ops.filter(o => o.type === 'adjustment').length,
+            done: ops.filter(o => o.type === 'adjustment' && o.status === 'done').length,
+          },
+        ];
+        setActivityData(chartData);
+
+        setStats({
+          receipt: { pending: receiptPending, late: receiptLate, operations: receiptOperations },
+          delivery: { pending: deliveryPending, late: deliveryLate, waiting: deliveryWaiting, operations: deliveryOperations },
+          overview: { totalItems, lowStockAlerts, recentActivity },
+        });
 
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -220,8 +266,8 @@ export default function Dashboard() {
                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
                         cursor={{ fill: '#F5F2EC' }}
                       />
-                      <Bar dataKey="receipts" fill="#292B2A" radius={[4, 4, 0, 0]} name="Receipts" />
-                      <Bar dataKey="deliveries" fill="#A66A4C" radius={[4, 4, 0, 0]} name="Deliveries" />
+                      <Bar dataKey="count" fill="#292B2A" radius={[4, 4, 0, 0]} name="Total" />
+                      <Bar dataKey="done" fill="#A66A4C" radius={[4, 4, 0, 0]} name="Done" />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -246,10 +292,12 @@ export default function Dashboard() {
                     <div key={idx} className="flex items-center justify-between p-4 hover:bg-[#F5F2EC]/50 transition-colors">
                       <div>
                         <h4 className="text-[14px] font-bold text-[#292B2A]">{item.name}</h4>
-                        <p className="text-[12px] text-[#73716C] mt-0.5">{item.stock} in stock</p>
+                        <p className="text-[12px] text-[#73716C] mt-0.5">{item.stock} on hand</p>
                       </div>
-                      <div className="text-[13px] font-bold text-[#73716C]">
-                        {item.trend}
+                      <div className={`text-[13px] font-bold px-2 py-0.5 rounded-lg ${
+                        item.freeToUse <= 5 ? 'text-[#A66A4C] bg-[#A66A4C]/10' : 'text-[#73716C]'
+                      }`}>
+                        {item.freeToUse} free
                       </div>
                     </div>
                   ))
@@ -264,7 +312,7 @@ export default function Dashboard() {
                 <Button 
                   variant="ghost" 
                   className="text-[#A66A4C] hover:text-[#292B2A] hover:bg-transparent text-sm font-semibold h-auto p-0"
-                  onClick={() => navigate('/products')}
+                  onClick={() => navigate('/stock')}
                 >
                   View full inventory
                 </Button>
