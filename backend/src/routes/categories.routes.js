@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireStaff, requireManager } = require('../middleware/auth');
 const {
   listCategories,
   getCategory,
@@ -12,10 +12,10 @@ const router = Router();
 
 router.use(requireAuth);
 
-router.get('/', listCategories);
-router.get('/:id', getCategory);
-router.post('/', createCategory);
-router.put('/:id', updateCategory);
-router.delete('/:id', deleteCategory);
+router.get('/', requireStaff, listCategories);
+router.get('/:id', requireStaff, getCategory);
+router.post('/', requireManager, createCategory);
+router.put('/:id', requireManager, updateCategory);
+router.delete('/:id', requireManager, deleteCategory);
 
 module.exports = router;

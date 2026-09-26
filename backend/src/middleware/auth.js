@@ -1,5 +1,10 @@
 const { supabaseAdmin } = require('../lib/supabaseAdmin');
 
+const ROLES = {
+  MANAGER: 'manager',
+  STAFF: 'staff'
+};
+
 /**
  * requireAuth — validates a Supabase JWT access token.
  *
@@ -27,17 +32,29 @@ async function requireAuth(req, res, next) {
   }
 }
 
-function requireRole(role) {
+/**
+ * requireRoles — middleware to check if user has one of the allowed roles
+ */
+function requireRoles(allowedRoles) {
   return function (req, res, next) {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'Unauthorized: No user found' });
     }
-    const userRole = req.user.user_metadata?.role || req.user.role;
-    if (userRole !== role) {
+    const userRole = req.user.user_metadata?.role || req.user.role || req.user.app_metadata?.role;
+    if (!allowedRoles.includes(userRole)) {
       return res.status(403).json({ success: false, error: 'Forbidden: Insufficient permissions' });
     }
     next();
   };
 }
 
-module.exports = { requireAuth, requireRole };
+const requireManager = requireRoles([ROLES.MANAGER]);
+const requireStaff = requireRoles([ROLES.MANAGER, ROLES.STAFF]);
+
+module.exports = { 
+  requireAuth, 
+  requireRoles,
+  requireManager,
+  requireStaff,
+  ROLES
+};
