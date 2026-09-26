@@ -12,6 +12,9 @@ const schema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  terms: z.boolean().refine((val) => val === true, {
+    message: "You must accept the terms and conditions",
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -120,13 +123,21 @@ export default function Signup() {
 
               <div className="pt-2">
                 <label className="flex items-center gap-3 cursor-pointer group w-max">
-                  <div className="w-5 h-5 rounded border-2 border-[#B7A58A] group-hover:border-[#A66A4C] flex items-center justify-center transition-colors">
-                    {/* Placeholder checkbox */}
+                  <div className="relative flex items-center justify-center w-5 h-5">
+                    <input 
+                      type="checkbox" 
+                      className="peer appearance-none w-5 h-5 rounded border-2 border-[#B7A58A] checked:bg-[#A66A4C] checked:border-[#A66A4C] hover:border-[#A66A4C] transition-colors cursor-pointer"
+                      {...register("terms")}
+                    />
+                    <svg className="absolute w-3.5 h-3.5 pointer-events-none opacity-0 peer-checked:opacity-100 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
                   </div>
                   <span className="text-[13px] font-medium text-[#73716C]">
                     I agree to the <a href="#" className="text-[#A66A4C] hover:text-[#292B2A] transition-colors">Terms & Conditions</a>
                   </span>
                 </label>
+                {errors.terms && <p className="text-[12px] text-[#A66A4C] ml-1 mt-1 font-medium">{errors.terms.message}</p>}
               </div>
 
               {signup.isError && (
