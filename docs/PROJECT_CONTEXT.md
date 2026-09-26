@@ -1,7 +1,7 @@
 # Project Context
 
 ## Project
-[Placeholder - Enter Project Name Here]
+StockSense (Inventory Management System)
 
 ## Hackathon
 Odoo Hackathon 2026
@@ -19,16 +19,11 @@ Vite
 Tailwind CSS
 shadcn/ui
 
-Backend:
-Node.js
-Express
-
-Database:
-PostgreSQL
-Prisma ORM
+Backend & Database:
+Supabase MCP (PostgreSQL Database, Auth, Storage)
 
 Authentication:
-Custom JWT
+Supabase Auth (with OTP support)
 
 ## Rules
 
