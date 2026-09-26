@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, AlertCircle, Activity, Info, TrendingUp } from "lucide-react";
+import { Package, AlertCircle, Activity, Info, TrendingUp, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -274,8 +274,15 @@ export default function Dashboard() {
 
           {/* More Info / Top Items */}
           <Card className="bg-white border-[#EAE6DE] shadow-sm rounded-3xl overflow-hidden">
-            <CardHeader className="bg-white pb-4 border-b border-[#EAE6DE]">
-              <CardTitle className="text-xl font-bold text-[#292B2A] font-['Outfit']">Top Products</CardTitle>
+            <CardHeader 
+              className="bg-white pb-4 border-b border-[#EAE6DE] flex flex-row items-center justify-between cursor-pointer group"
+              onClick={() => navigate('/products')}
+            >
+              <CardTitle className="text-xl font-bold text-[#292B2A] font-['Outfit'] group-hover:text-[#A66A4C] transition-colors">Top Products</CardTitle>
+              <div className="flex items-center gap-1 text-sm font-semibold text-[#A66A4C] group-hover:text-[#8a563d] transition-colors">
+                View All
+                <ChevronRight className="h-4 w-4" />
+              </div>
             </CardHeader>
             <CardContent className="bg-white p-0 flex flex-col h-full">
               <div className="divide-y divide-[#EAE6DE] flex-1 overflow-y-auto max-h-[250px]">
@@ -299,15 +306,7 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-              <div className="p-4 bg-[#F5F2EC]/30 border-t border-[#EAE6DE] flex justify-center mt-auto">
-                <Button
-                  variant="ghost"
-                  className="text-[#A66A4C] hover:text-[#292B2A] hover:bg-transparent text-sm font-semibold h-auto p-0"
-                  onClick={() => navigate('/products')}
-                >
-                  View full stock
-                </Button>
-              </div>
+
             </CardContent>
           </Card>
         </div>

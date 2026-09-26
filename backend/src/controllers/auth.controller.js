@@ -24,7 +24,7 @@ const register = asyncHandler(async (req, res) => {
       await supabaseAdmin.from('users').upsert({
         id: authData.user.id,
         email: authData.user.email,
-        role: 'user',
+        role: 'employee',
       });
     } catch (_) {}
   }
@@ -57,7 +57,7 @@ const login = asyncHandler(async (req, res) => {
       await supabaseAdmin.from('users').upsert({
         id: authData.user.id,
         email: authData.user.email,
-        role: 'user',
+        role: 'employee',
       });
     } catch (_) {}
   }
