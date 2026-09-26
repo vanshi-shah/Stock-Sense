@@ -14,6 +14,7 @@ import Receipts from "./pages/Receipts";
 import Deliveries from "./pages/Deliveries";
 import VerifyOtp from "./pages/VerifyOtp";
 import UpdatePassword from "./pages/UpdatePassword";
+import Adjustment from "./pages/Adjustment";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 
 export function App() {
@@ -74,6 +75,14 @@ export function App() {
           element={
             <DashboardLayout>
               <Locations />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/operations/adjustment"
+          element={
+            <DashboardLayout>
+              <Adjustment />
             </DashboardLayout>
           }
         />
