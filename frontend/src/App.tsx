@@ -10,6 +10,8 @@ import MoveHistory from "./pages/MoveHistory";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ResetPassword from "./pages/ResetPassword";
+import Receipts from "./pages/Receipts";
+import Deliveries from "./pages/Deliveries";
 import VerifyOtp from "./pages/VerifyOtp";
 import UpdatePassword from "./pages/UpdatePassword";
 import Adjustment from "./pages/Adjustment";
@@ -49,6 +51,22 @@ export function App() {
           element={
             <DashboardLayout>
               <Warehouse />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/receipts"
+          element={
+            <DashboardLayout>
+              <Receipts />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/deliveries"
+          element={
+            <DashboardLayout>
+              <Deliveries />
             </DashboardLayout>
           }
         />
