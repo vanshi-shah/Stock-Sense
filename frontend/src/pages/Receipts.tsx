@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import toast from "react-hot-toast";
 import { Search, List, LayoutGrid, ChevronRight, Loader2, Printer, CheckCircle2, XCircle, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -61,6 +60,7 @@ export default function Receipts() {
   ]);
   const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   // ── Fetch list ──────────────────────────────────────────────────────────────
   const fetchReceipts = useCallback(async () => {
@@ -98,6 +98,7 @@ export default function Receipts() {
     setScheduleDate("");
     setStatus("draft");
     setProducts([{ lineId: Date.now(), product_id: "", productName: "", quantity: 1 }]);
+    setError("");
     setView("form");
   };
 
@@ -127,14 +128,16 @@ export default function Receipts() {
     } else {
       setProducts([{ lineId: Date.now(), product_id: "", productName: "", quantity: 1 }]);
     }
+    setError("");
     setView("form");
   };
 
   // ── Save (insert or update) ─────────────────────────────────────────────────
   const handleSave = async (nextStatus: OperationStatus = status) => {
-    if (!receiveFrom.trim()) { toast.error("Receive From is required."); return; }
-    if (products.some(p => !p.product_id)) { toast.error("All product lines must have a product selected."); return; }
-    if (products.some(p => p.quantity <= 0)) { toast.error("All quantities must be greater than 0."); return; }
+    setError("");
+    if (!receiveFrom.trim()) { setError("Receive From is required."); return; }
+    if (products.some(p => !p.product_id)) { setError("All product lines must have a product selected."); return; }
+    if (products.some(p => p.quantity <= 0)) { setError("All quantities must be greater than 0."); return; }
 
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -155,7 +158,7 @@ export default function Receipts() {
         .select()
         .single();
 
-      if (opErr) { toast.error(opErr.message); setSaving(false); return; }
+      if (opErr) { setError(opErr.message); setSaving(false); return; }
 
       // Insert stock_moves
       const moves = products.map(p => ({
@@ -166,7 +169,7 @@ export default function Receipts() {
         quantity: p.quantity,
       }));
       const { error: movErr } = await supabase.from("stock_moves").insert(moves);
-      if (movErr) { toast.error(movErr.message); setSaving(false); return; }
+      if (movErr) { setError(movErr.message); setSaving(false); return; }
 
       setCurrentId(op.id);
       setStatus(nextStatus);
@@ -177,11 +180,10 @@ export default function Receipts() {
         .update({ status: nextStatus, contact: receiveFrom, schedule_date: scheduleDate || null, responsible })
         .eq("id", currentId);
 
-      if (upErr) { toast.error(upErr.message); setSaving(false); return; }
+      if (upErr) { setError(upErr.message); setSaving(false); return; }
       setStatus(nextStatus);
     }
 
-    toast.success("Receipt saved successfully");
     setSaving(false);
     fetchReceipts();
   };
@@ -196,7 +198,6 @@ export default function Receipts() {
   const handleCancel = async () => {
     if (currentId) {
       await supabase.from("operations").update({ status: "canceled" }).eq("id", currentId);
-      toast.success("Receipt canceled");
       fetchReceipts();
     }
     setView("list");
@@ -371,6 +372,13 @@ export default function Receipts() {
               ))}
             </div>
           </div>
+
+          {/* Error banner */}
+          {error && (
+            <div className="mx-8 mt-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium flex items-center gap-2">
+              <XCircle className="h-4 w-4 shrink-0" /> {error}
+            </div>
+          )}
 
           {/* Form Body */}
           <div className="p-8 flex flex-col gap-8">

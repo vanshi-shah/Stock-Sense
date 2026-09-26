@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import toast from "react-hot-toast";
 import { Search, List, LayoutGrid, ChevronRight, Loader2, Printer, CheckCircle2, XCircle, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -64,6 +63,7 @@ export default function Deliveries() {
   ]);
   const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [stockAlert, setStockAlert] = useState("");
 
   // ── Fetch deliveries ─────────────────────────────────────────────────────────
@@ -122,6 +122,7 @@ export default function Deliveries() {
     setScheduleDate("");
     setStatus("draft");
     setProducts([{ lineId: Date.now(), product_id: "", productName: "", quantity: 1 }]);
+    setError("");
     setStockAlert("");
     setView("form");
   };
@@ -151,14 +152,16 @@ export default function Deliveries() {
 
     setProducts(lines);
     await checkStock(lines);
+    setError("");
     setView("form");
   };
 
   // ── Save / state transition ──────────────────────────────────────────────────
   const handleSave = async (nextStatus: OperationStatus = status) => {
-    if (!deliveryAddress.trim()) { toast.error("Delivery Address is required."); return; }
-    if (products.some(p => !p.product_id)) { toast.error("All product lines must have a product selected."); return; }
-    if (products.some(p => p.quantity <= 0)) { toast.error("All quantities must be greater than 0."); return; }
+    setError("");
+    if (!deliveryAddress.trim()) { setError("Delivery Address is required."); return; }
+    if (products.some(p => !p.product_id)) { setError("All product lines must have a product selected."); return; }
+    if (products.some(p => p.quantity <= 0)) { setError("All quantities must be greater than 0."); return; }
 
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -178,7 +181,7 @@ export default function Deliveries() {
         .select()
         .single();
 
-      if (opErr) { toast.error(opErr.message); setSaving(false); return; }
+      if (opErr) { setError(opErr.message); setSaving(false); return; }
 
       const moves = products.map(p => ({
         operation_id: op.id,
@@ -188,7 +191,7 @@ export default function Deliveries() {
         quantity: p.quantity,
       }));
       const { error: movErr } = await supabase.from("stock_moves").insert(moves);
-      if (movErr) { toast.error(movErr.message); setSaving(false); return; }
+      if (movErr) { setError(movErr.message); setSaving(false); return; }
 
       setCurrentId(op.id);
       setStatus(nextStatus);
@@ -197,11 +200,10 @@ export default function Deliveries() {
         .from("operations")
         .update({ status: nextStatus, contact: deliveryAddress, schedule_date: scheduleDate || null, responsible })
         .eq("id", currentId);
-      if (upErr) { toast.error(upErr.message); setSaving(false); return; }
+      if (upErr) { setError(upErr.message); setSaving(false); return; }
       setStatus(nextStatus);
     }
 
-    toast.success("Delivery saved successfully");
     setSaving(false);
     fetchDeliveries();
   };
@@ -219,7 +221,6 @@ export default function Deliveries() {
   const handleCancel = async () => {
     if (currentId) {
       await supabase.from("operations").update({ status: "canceled" }).eq("id", currentId);
-      toast.success("Delivery canceled");
       fetchDeliveries();
     }
     setView("list");
@@ -397,7 +398,12 @@ export default function Deliveries() {
             </div>
           </div>
 
-          {/* Stock alert banner */}
+          {/* Error + Stock alert banners */}
+          {error && (
+            <div className="mx-8 mt-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium flex items-center gap-2">
+              <XCircle className="h-4 w-4 shrink-0" /> {error}
+            </div>
+          )}
           {stockAlert && (
             <div className="mx-8 mt-4 p-4 bg-orange-50 border border-orange-200 rounded-xl text-orange-700 text-sm font-medium flex items-center gap-2">
               ⚠️ {stockAlert} — highlighted rows are out of stock.

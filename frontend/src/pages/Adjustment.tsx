@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import toast from "react-hot-toast";
 import { Settings, Save, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ export default function Adjustment() {
   const [quantity, setQuantity] = useState("");
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     fetchProducts();
@@ -25,11 +25,12 @@ export default function Adjustment() {
 
   const handleSave = async () => {
     if (!selectedProductId || !quantity) {
-      toast.error('Please select a product and enter a quantity.');
+      setMessage({ type: 'error', text: 'Please select a product and enter a quantity.' });
       return;
     }
 
     setLoading(true);
+    setMessage({ type: '', text: '' });
 
     try {
       // Find current stock
@@ -49,14 +50,14 @@ export default function Adjustment() {
 
       if (error) throw error;
 
-      toast.success(`Successfully adjusted stock! New balance is ${newStock}.`);
+      setMessage({ type: 'success', text: `Successfully adjusted stock! New balance is ${newStock}.` });
       setQuantity("");
       setReason("");
       fetchProducts(); // Refresh
       
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || 'Failed to apply adjustment.');
+      setMessage({ type: 'error', text: error.message || 'Failed to apply adjustment.' });
     } finally {
       setLoading(false);
     }
@@ -75,6 +76,13 @@ export default function Adjustment() {
 
         {/* Content - Direct Form */}
         <div className="p-6 md:p-12 flex flex-col max-w-2xl gap-8 relative">
+
+          {message.text && (
+            <div className={`p-4 rounded-xl flex items-center gap-3 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+              <AlertCircle size={18} />
+              <p className="font-medium text-sm">{message.text}</p>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
             <label className="text-[15px] font-semibold text-[#A66A4C] sm:w-32">Product:</label>

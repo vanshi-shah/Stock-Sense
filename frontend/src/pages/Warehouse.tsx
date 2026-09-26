@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import toast from "react-hot-toast";
 import { Building2, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -67,10 +66,9 @@ export default function Warehouse() {
       
       // Refresh list
       fetchWarehouses();
-      toast.success("Warehouse saved successfully");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error saving warehouse:", err);
-      toast.error(err.message || "Failed to save warehouse. Check if the table exists in Supabase.");
+      alert("Failed to save warehouse. Check if the table exists in Supabase.");
     }
   };
 
@@ -82,11 +80,9 @@ export default function Warehouse() {
         .delete()
         .eq('id', id);
       if (error) throw error;
-      toast.success("Warehouse deleted successfully");
       fetchWarehouses();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error deleting:", err);
-      toast.error(err.message || "Failed to delete warehouse");
     }
   };
 
