@@ -1,10 +1,14 @@
 # Development Phases - StockSense
 
-## Phase 1: Setup & Foundations
-- Initialize React + Vite project with Tailwind and shadcn/ui.
-- Setup Supabase project (Database, Auth).
-- Define PostgreSQL schema in Supabase (Users, Products, Warehouses).
-- Implement Authentication UI (Login, Signup, OTP reset).
+## Phase 1: Setup & Foundations ✅
+- [x] Initialize React + Vite project with Tailwind and shadcn/ui.
+- [x] Setup Supabase project (Database, Auth).
+- [x] Define PostgreSQL schema in Supabase (Users, Products, Warehouses).
+- [x] Implement Authentication UI (Login, Signup, OTP reset).
+  - Login → Supabase `signInWithPassword`
+  - Signup → Supabase `signUp` (email OTP confirmation)
+  - Forgot Password → `resetPasswordForEmail` → `/verify-otp` (6-digit OTP) → `/update-password`
+  - `AuthContext` + `ProtectedRoute` guarding `/dashboard`
 
 ## Phase 2: Core Inventory Management
 - Implement Product Management (CRUD for products, categories, SKU).

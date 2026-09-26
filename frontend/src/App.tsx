@@ -5,32 +5,40 @@ import { ComponentGallery } from "./pages/ComponentGallery";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ResetPassword from "./pages/ResetPassword";
+import VerifyOtp from "./pages/VerifyOtp";
+import UpdatePassword from "./pages/UpdatePassword";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
 
 export function App() {
   return (
     <Routes>
+      {/* Public routes */}
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/verify-otp" element={<VerifyOtp />} />
+      <Route path="/update-password" element={<UpdatePassword />} />
 
-      <Route
-        path="/dashboard"
-        element={
-          <DashboardLayout>
-            <Dashboard />
-          </DashboardLayout>
-        }
-      />
-
-      <Route
-        path="/components"
-        element={
-          <DashboardLayout>
-            <ComponentGallery />
-          </DashboardLayout>
-        }
-      />
+      {/* Protected routes — require an active session */}
+      <Route element={<ProtectedRoute />}>
+        <Route
+          path="/dashboard"
+          element={
+            <DashboardLayout>
+              <Dashboard />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/components"
+          element={
+            <DashboardLayout>
+              <ComponentGallery />
+            </DashboardLayout>
+          }
+        />
+      </Route>
     </Routes>
   );
 }

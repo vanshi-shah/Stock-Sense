@@ -1,14 +1,13 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useSignup } from "@/hooks/useAuth";
+import { useUpdatePassword } from "@/hooks/useAuth";
 
 const schema = z
   .object({
-    email: z.string().email("Enter a valid email"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
   })
@@ -18,9 +17,14 @@ const schema = z
   });
 type FormData = z.infer<typeof schema>;
 
-export default function Signup() {
+/**
+ * Update Password page.
+ * Reached after the user has verified their OTP for password recovery.
+ * Supabase keeps a short-lived recovery session which allows updateUser() to work.
+ */
+export default function UpdatePassword() {
   const navigate = useNavigate();
-  const signup = useSignup();
+  const updatePassword = useUpdatePassword();
   const {
     register,
     handleSubmit,
@@ -28,19 +32,14 @@ export default function Signup() {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = (data: FormData) => {
-    signup.mutate(data, {
-      onSuccess: (result) => {
-        // If email confirmation is required, Supabase returns a user but no session.
-        // The user needs to verify their email OTP before logging in.
-        if (result.session) {
-          // Auto-confirmed (email confirmation disabled in Supabase project settings)
-          navigate("/dashboard");
-        } else {
-          // Email confirmation required — send them to verify OTP page
-          navigate(`/verify-otp?email=${encodeURIComponent(data.email)}&type=signup`);
-        }
-      },
-    });
+    updatePassword.mutate(
+      { password: data.password },
+      {
+        onSuccess: () => {
+          navigate("/login");
+        },
+      }
+    );
   };
 
   return (
@@ -49,21 +48,18 @@ export default function Signup() {
         onSubmit={handleSubmit(onSubmit)}
         className="w-full max-w-sm space-y-4 p-6 bg-card rounded-lg shadow-md border"
       >
-        <h1 className="text-2xl font-semibold text-center mb-6">
-          Create an account
-        </h1>
-
-        <div>
-          <Input placeholder="Email" {...register("email")} />
-          {errors.email && (
-            <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
-          )}
+        <div className="text-center space-y-1 mb-4">
+          <div className="text-4xl mb-2">🔑</div>
+          <h1 className="text-2xl font-semibold">Set New Password</h1>
+          <p className="text-sm text-muted-foreground">
+            Choose a strong new password for your account.
+          </p>
         </div>
 
         <div>
           <Input
             type="password"
-            placeholder="Password"
+            placeholder="New password"
             {...register("password")}
           />
           {errors.password && (
@@ -76,7 +72,7 @@ export default function Signup() {
         <div>
           <Input
             type="password"
-            placeholder="Confirm Password"
+            placeholder="Confirm new password"
             {...register("confirmPassword")}
           />
           {errors.confirmPassword && (
@@ -86,22 +82,26 @@ export default function Signup() {
           )}
         </div>
 
-        <Button type="submit" className="w-full" disabled={signup.isPending}>
-          {signup.isPending ? "Creating account…" : "Sign up"}
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={updatePassword.isPending}
+        >
+          {updatePassword.isPending ? "Updating…" : "Update Password"}
         </Button>
 
-        {signup.isError && (
+        {updatePassword.isError && (
           <p className="text-sm text-red-500 text-center">
-            {(signup.error as Error)?.message || "Signup failed. Please try again."}
+            {(updatePassword.error as Error)?.message ||
+              "Failed to update password. Please try again."}
           </p>
         )}
 
-        <div className="text-center text-sm text-muted-foreground mt-4">
-          Already have an account?{" "}
-          <Link to="/login" className="text-primary hover:underline">
-            Sign in
-          </Link>
-        </div>
+        {updatePassword.isSuccess && (
+          <p className="text-sm text-green-600 text-center">
+            Password updated! Redirecting to login…
+          </p>
+        )}
       </form>
     </div>
   );

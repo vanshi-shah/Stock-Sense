@@ -1,35 +1,19 @@
-const { prisma } = require("../lib/prisma");
-const { createSubmissionSchema, updateStatusSchema } = require("../schemas/submission.schema");
-const { getIO } = require("../socket");
+/**
+ * Submission controller — stubbed for StockSense.
+ * Submissions are not part of the core inventory feature set;
+ * this file exists as a placeholder from the original boilerplate.
+ */
 
-async function listSubmissions(req, res) {
-  const isAdmin = req.user.role === "ADMIN";
-  const submissions = await prisma.submission.findMany({
-    where: isAdmin ? {} : { ownerId: req.user.id },
-    orderBy: { createdAt: "desc" },
-    include: { owner: { select: { name: true } } },
-  });
-  res.json(submissions);
+async function listSubmissions(_req, res) {
+  res.json([]);
 }
 
-async function createSubmission(req, res) {
-  const data = createSubmissionSchema.parse(req.body);
-  const submission = await prisma.submission.create({
-    data: { ...data, ownerId: req.user.id },
-  });
-  getIO().emit("submission:created", submission);
-  res.status(201).json(submission);
+async function createSubmission(_req, res) {
+  res.status(501).json({ error: "Not implemented" });
 }
 
-// Admin-only: moderate a submission (approve/reject)
-async function updateSubmissionStatus(req, res) {
-  const { status } = updateStatusSchema.parse(req.body);
-  const submission = await prisma.submission.update({
-    where: { id: req.params.id },
-    data: { status },
-  });
-  getIO().emit("submission:updated", submission);
-  res.json(submission);
+async function updateSubmissionStatus(_req, res) {
+  res.status(501).json({ error: "Not implemented" });
 }
 
 module.exports = { listSubmissions, createSubmission, updateSubmissionStatus };
