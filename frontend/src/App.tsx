@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
+import Stock from "./pages/Stock";
 import { ComponentGallery } from "./pages/ComponentGallery";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -28,6 +29,14 @@ export function App() {
           element={
             <DashboardLayout>
               <Dashboard />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <DashboardLayout>
+              <Stock />
             </DashboardLayout>
           }
         />
