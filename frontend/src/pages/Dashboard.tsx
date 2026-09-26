@@ -1,255 +1,138 @@
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { api } from "@/lib/api";
-import { socket } from "@/lib/socket";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SideBySideView } from "@/components/SideBySideView";
-import { Switch } from "@/components/ui/switch";
-import { Activity, CheckCircle, Clock, XCircle, TrendingUp, Sparkles, Plus } from "lucide-react";
-
-interface Submission {
-  id: string;
-  title: string;
-  category?: string;
-  submittedAt?: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
-}
-
-const defaultSubmissions: Submission[] = [
-  { id: "1", title: "AI Code Reviewer", category: "AI & ML", submittedAt: "10 mins ago", status: "APPROVED" },
-  { id: "2", title: "Decentralized Auth Flow", category: "Web3", submittedAt: "35 mins ago", status: "PENDING" },
-  { id: "3", title: "Real-time Collaborative Canvas", category: "Full-Stack", submittedAt: "1 hour ago", status: "APPROVED" },
-  { id: "4", title: "Legacy System Migration Bot", category: "DevOps", submittedAt: "2 hours ago", status: "REJECTED" },
-  { id: "5", title: "Automated Dual Theme Generator", category: "Frontend", submittedAt: "Just now", status: "APPROVED" },
-];
+import { Package, Warehouse, TrendingUp, AlertCircle, ArrowRight, Activity } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
-  const [sideBySide, setSideBySide] = useState(false);
-
-  const { data: remoteSubmissions, refetch } = useQuery<Submission[]>({
-    queryKey: ["submissions"],
-    queryFn: async () => {
-      try {
-        const res = await api.get("/submissions");
-        return res.data;
-      } catch {
-        return defaultSubmissions;
-      }
-    },
-  });
-
-  const submissions = remoteSubmissions && remoteSubmissions.length > 0 ? remoteSubmissions : defaultSubmissions;
-
-  const [chartData, setChartData] = useState<{ status: string; count: number }[]>([]);
-
-  useEffect(() => {
-    try {
-      socket.connect();
-      socket.on("submission:created", () => refetch());
-      socket.on("submission:updated", () => refetch());
-    } catch {
-      // socket fallback
-    }
-    return () => {
-      try {
-        socket.off("submission:created");
-        socket.off("submission:updated");
-        socket.disconnect();
-      } catch {
-        // ignore
-      }
-    };
-  }, [refetch]);
-
-  useEffect(() => {
-    const counts = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
-    submissions.forEach((s) => {
-      if (counts[s.status] !== undefined) {
-        counts[s.status]++;
-      }
-    });
-    setChartData([
-      { status: "Approved", count: counts.APPROVED },
-      { status: "Pending", count: counts.PENDING },
-      { status: "Rejected", count: counts.REJECTED },
-    ]);
-  }, [submissions]);
-
-  const approvedCount = submissions.filter((s) => s.status === "APPROVED").length;
-  const pendingCount = submissions.filter((s) => s.status === "PENDING").length;
-  const rejectedCount = submissions.filter((s) => s.status === "REJECTED").length;
-
-  const renderDashboardContent = () => (
-    <div className="space-y-6">
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-border/80 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Submissions</CardTitle>
-            <Activity className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{submissions.length}</div>
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <TrendingUp className="h-3 w-3 text-emerald-500" /> +12% from last hour
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/80 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Approved</CardTitle>
-            <CheckCircle className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{approvedCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Ready for evaluation</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/80 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">In Review</CardTitle>
-            <Clock className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{pendingCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Awaiting judge feedback</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/80 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Rejected</CardTitle>
-            <XCircle className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{rejectedCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Needs revision</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Chart & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 border-border/80 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Submission Status Overview</CardTitle>
-            <CardDescription>Live breakdown across approval categories</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                  <XAxis dataKey="status" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
-                  <YAxis allowDecimals={false} stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      borderColor: "hsl(var(--border))",
-                      color: "hsl(var(--foreground))",
-                      borderRadius: "8px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    }}
-                  />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Submissions List */}
-        <Card className="border-border/80 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
-              <CardDescription>Latest team submissions</CardDescription>
-            </div>
-            <Button size="sm" variant="outline" className="h-8 gap-1 text-xs">
-              <Plus className="h-3.5 w-3.5" /> Add
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {submissions.slice(0, 5).map((s) => (
-                <div
-                  key={s.id}
-                  className="flex items-center justify-between p-2.5 rounded-lg border border-border/60 bg-muted/30 hover:bg-muted/60 transition-colors"
-                >
-                  <div className="min-w-0 flex-1 mr-2">
-                    <p className="text-sm font-medium truncate">{s.title}</p>
-                    <p className="text-xs text-muted-foreground">{s.category || "Hackathon Project"}</p>
-                  </div>
-                  <Badge
-                    variant={
-                      s.status === "APPROVED"
-                        ? "default"
-                        : s.status === "PENDING"
-                        ? "secondary"
-                        : "destructive"
-                    }
-                    className="text-[11px]"
-                  >
-                    {s.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+  const navigate = useNavigate();
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      {/* Top action header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-xl border border-border/80 bg-card/60 backdrop-blur-md shadow-sm">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold tracking-tight">Hackathon Dashboard</h2>
-            <Badge variant="outline" className="text-xs border-primary/30 text-primary gap-1">
-              <Sparkles className="h-3 w-3" /> Auto Light/Dark
-            </Badge>
+    <div className="min-h-screen bg-[#F5F2EC] font-['Inter'] selection:bg-[#B7A58A] selection:text-white pb-12">
+      
+      {/* Top Header / Welcome Section */}
+      <div className="bg-[#292B2A] px-6 py-12 md:py-20 rounded-b-[48px] shadow-lg relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#A66A4C] rounded-full mix-blend-multiply filter blur-3xl opacity-20 translate-x-1/3 -translate-y-1/2" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#B7A58A] rounded-full mix-blend-multiply filter blur-3xl opacity-20 -translate-x-1/4 translate-y-1/4" />
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-[#F5F2EC] font-['Outfit'] tracking-tight mb-3">
+                Overview
+              </h1>
+              <p className="text-[#B7A58A] text-lg font-medium max-w-lg">
+                Welcome back. Monitor your inventory flow and warehouse capacity at a glance.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="flex h-3 w-3 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[#F5F2EC]/80 text-sm font-medium tracking-wide uppercase">System Healthy</span>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Real-time project overview and submission analytics.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 bg-muted/60 px-4 py-2 rounded-lg border border-border/60">
-          <div className="text-right">
-            <label htmlFor="dash-sbs-toggle" className="text-xs font-semibold block cursor-pointer">
-              Dual-Theme Split View
-            </label>
-            <span className="text-[11px] text-muted-foreground">
-              {sideBySide ? "Showing Light & Dark" : "Single active theme"}
-            </span>
-          </div>
-          <Switch
-            id="dash-sbs-toggle"
-            checked={sideBySide}
-            onCheckedChange={setSideBySide}
-          />
         </div>
       </div>
 
-      {/* Main Dashboard Render */}
-      {sideBySide ? (
-        <SideBySideView
-          title="Dashboard Dual-Theme Preview"
-          description="View your live statistics, charts, and metrics in both Light and Dark mode side-by-side."
-        >
-          {renderDashboardContent()}
-        </SideBySideView>
-      ) : (
-        renderDashboardContent()
-      )}
+      <div className="max-w-7xl mx-auto px-6 -mt-8 relative z-20 space-y-8">
+        
+        {/* Primary Actions (Stock & Warehouse) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <button 
+            onClick={() => navigate('/stock')}
+            className="group flex flex-col justify-between h-48 md:h-56 p-8 bg-white rounded-[32px] border-2 border-[#EAE6DE] shadow-sm hover:border-[#A66A4C] hover:shadow-[0_8px_30px_rgb(166,106,76,0.15)] transition-all duration-300 text-left overflow-hidden relative"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#B7A58A]/10 rounded-bl-full transition-transform duration-500 group-hover:scale-110 group-hover:bg-[#B7A58A]/20" />
+            <div className="h-14 w-14 rounded-2xl bg-[#292B2A] text-[#F5F2EC] flex items-center justify-center shadow-md relative z-10 transition-transform duration-300 group-hover:-translate-y-1">
+              <Package size={28} strokeWidth={1.5} />
+            </div>
+            <div className="relative z-10">
+              <h2 className="text-2xl font-bold text-[#292B2A] font-['Outfit'] mb-1">Stock Management</h2>
+              <p className="text-[#73716C] font-medium flex items-center gap-2">
+                View items & availability <ArrowRight size={16} className="text-[#A66A4C] opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+              </p>
+            </div>
+          </button>
+
+          <button 
+            onClick={() => navigate('/warehouse')}
+            className="group flex flex-col justify-between h-48 md:h-56 p-8 bg-white rounded-[32px] border-2 border-[#EAE6DE] shadow-sm hover:border-[#A66A4C] hover:shadow-[0_8px_30px_rgb(166,106,76,0.15)] transition-all duration-300 text-left overflow-hidden relative"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#A66A4C]/10 rounded-bl-full transition-transform duration-500 group-hover:scale-110 group-hover:bg-[#A66A4C]/20" />
+            <div className="h-14 w-14 rounded-2xl bg-[#B7A58A] text-[#292B2A] flex items-center justify-center shadow-md relative z-10 transition-transform duration-300 group-hover:-translate-y-1">
+              <Warehouse size={28} strokeWidth={1.5} />
+            </div>
+            <div className="relative z-10">
+              <h2 className="text-2xl font-bold text-[#292B2A] font-['Outfit'] mb-1">Warehouse Locations</h2>
+              <p className="text-[#73716C] font-medium flex items-center gap-2">
+                Manage storage & capacity <ArrowRight size={16} className="text-[#A66A4C] opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+              </p>
+            </div>
+          </button>
+
+        </div>
+
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="bg-white border-[#EAE6DE] shadow-sm rounded-3xl overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 bg-white">
+              <CardTitle className="text-sm font-semibold text-[#73716C] uppercase tracking-wider">Total Items</CardTitle>
+              <Package className="h-5 w-5 text-[#B7A58A]" />
+            </CardHeader>
+            <CardContent className="bg-white">
+              <div className="text-4xl font-bold text-[#292B2A] font-['Outfit']">0</div>
+              <p className="text-[13px] font-medium text-[#73716C] mt-2 flex items-center gap-1.5">
+                No data available
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border-[#EAE6DE] shadow-sm rounded-3xl overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 bg-white">
+              <CardTitle className="text-sm font-semibold text-[#73716C] uppercase tracking-wider">Low Stock Alerts</CardTitle>
+              <AlertCircle className="h-5 w-5 text-[#A66A4C]" />
+            </CardHeader>
+            <CardContent className="bg-white">
+              <div className="text-4xl font-bold text-[#A66A4C] font-['Outfit']">0</div>
+              <p className="text-[13px] font-medium text-[#73716C] mt-2 flex items-center gap-1.5">
+                All systems normal
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border-[#EAE6DE] shadow-sm rounded-3xl overflow-hidden sm:col-span-2 lg:col-span-1">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 bg-white">
+              <CardTitle className="text-sm font-semibold text-[#73716C] uppercase tracking-wider">Recent Activity</CardTitle>
+              <Activity className="h-5 w-5 text-[#292B2A]" />
+            </CardHeader>
+            <CardContent className="bg-white">
+              <div className="text-4xl font-bold text-[#292B2A] font-['Outfit']">0</div>
+              <p className="text-[13px] font-medium text-[#73716C] mt-2">
+                No recent activity
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Additional Panel for Aesthetics (Recent Movements Placeholder) */}
+        <div className="bg-white rounded-3xl p-8 border border-[#EAE6DE] shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-[#292B2A] font-['Outfit']">Recent Movements</h3>
+            <Button variant="ghost" className="text-[#A66A4C] hover:text-[#292B2A] hover:bg-[#F5F2EC] font-semibold text-sm">
+              View All
+            </Button>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <Package className="h-10 w-10 text-[#EAE6DE] mb-3" strokeWidth={1.5} />
+              <p className="text-[14px] font-medium text-[#73716C]">No recent movements to display</p>
+              <p className="text-[12px] text-[#B7A58A] mt-1">Inventory transfers will appear here.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
