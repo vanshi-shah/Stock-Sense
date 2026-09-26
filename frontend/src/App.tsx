@@ -2,6 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Stock from "./pages/Stock";
+import Warehouse from "./pages/Warehouse";
+import Locations from "./pages/Locations";
 import { ComponentGallery } from "./pages/ComponentGallery";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -37,6 +39,22 @@ export function App() {
           element={
             <DashboardLayout>
               <Stock />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/warehouse"
+          element={
+            <DashboardLayout>
+              <Warehouse />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/locations"
+          element={
+            <DashboardLayout>
+              <Locations />
             </DashboardLayout>
           }
         />

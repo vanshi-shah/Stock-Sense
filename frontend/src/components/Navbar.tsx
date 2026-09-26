@@ -37,8 +37,8 @@ export function Navbar() {
       label: "Settings", 
       path: "/settings",
       subItems: [
-        { label: "Warehouse", path: "/settings/warehouse" },
-        { label: "Locations", path: "/settings/locations" }
+        { label: "Warehouse", path: "/warehouse" },
+        { label: "Locations", path: "/locations" }
       ]
     },
   ];
