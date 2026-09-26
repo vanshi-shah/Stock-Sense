@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Plus, Edit } from "lucide-react";
+import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
@@ -50,6 +51,7 @@ export default function Stock() {
     
     if (error) {
       console.error('Error fetching stocks:', error);
+      toast.error('Failed to load stocks');
     } else if (data) {
       setStocks(data);
     }
@@ -95,8 +97,10 @@ export default function Stock() {
 
       if (!error) {
         setStocks(prev => prev.map(s => s.id === editingId ? { ...s, ...updatedItem } : s));
+        toast.success('Stock updated successfully');
       } else {
         console.error('Error updating stock:', error);
+        toast.error('Failed to update stock');
       }
     } else {
       const newItem = {
@@ -113,8 +117,10 @@ export default function Stock() {
 
       if (!error && data) {
         setStocks(prev => [...prev, data[0]]);
+        toast.success('Stock added successfully');
       } else {
         console.error('Error adding stock:', error);
+        toast.error('Failed to add stock');
       }
     }
     setIsDialogOpen(false);
