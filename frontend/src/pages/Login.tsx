@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLogin } from "@/hooks/useAuth";
@@ -41,6 +41,12 @@ export default function Login() {
           {login.isPending ? "Signing in..." : "Sign in"}
         </Button>
         {login.isError && <p className="text-sm text-red-500">Invalid credentials</p>}
+        <div className="flex flex-col space-y-2 text-center text-sm text-muted-foreground mt-4">
+          <Link to="/reset-password" className="hover:underline">Forgot password?</Link>
+          <div>
+            Don't have an account? <Link to="/signup" className="text-primary hover:underline">Sign up</Link>
+          </div>
+        </div>
       </form>
     </div>
   );
