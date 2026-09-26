@@ -6,6 +6,7 @@ import Warehouse from "./pages/Warehouse";
 import Locations from "./pages/Locations";
 import { ComponentGallery } from "./pages/ComponentGallery";
 import Landing from "./pages/Landing";
+import MoveHistory from "./pages/MoveHistory";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ResetPassword from "./pages/ResetPassword";
@@ -81,6 +82,14 @@ export function App() {
           element={
             <DashboardLayout>
               <ComponentGallery />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/move-history"
+          element={
+            <DashboardLayout>
+              <MoveHistory />
             </DashboardLayout>
           }
         />
