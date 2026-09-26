@@ -4,8 +4,8 @@ import { Package, AlertCircle, Activity, Info, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
 } from "recharts";
 
 export default function Dashboard() {
@@ -63,14 +63,14 @@ export default function Dashboard() {
         const activeReceipts = ops.filter(o => o.type === 'receipt' && o.status !== 'done' && o.status !== 'canceled');
         const receiptPending = activeReceipts.length;
         const receiptLate = activeReceipts.filter(o => o.schedule_date && o.schedule_date < today).length;
-        const receiptOperations = activeReceipts.filter(o => o.schedule_date && o.schedule_date > today).length;
+        const receiptOperations = activeReceipts.filter(o => !o.schedule_date || o.schedule_date >= today).length;
 
         // Delivery stats (exclude done/canceled)
         const activeDeliveries = ops.filter(o => o.type === 'delivery' && o.status !== 'done' && o.status !== 'canceled');
         const deliveryPending = activeDeliveries.length;
         const deliveryLate = activeDeliveries.filter(o => o.schedule_date && o.schedule_date < today).length;
         const deliveryWaiting = activeDeliveries.filter(o => o.status === 'waiting').length;
-        const deliveryOperations = activeDeliveries.filter(o => o.schedule_date && o.schedule_date > today).length;
+        const deliveryOperations = activeDeliveries.filter(o => !o.schedule_date || o.schedule_date >= today).length;
 
         // Recent activity: all operations in last 7 days
         const recentActivity = ops.filter(o => o.created_at && o.created_at >= sevenDaysAgo).length;
@@ -116,13 +116,13 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#F5F2EC] font-['Inter'] selection:bg-[#B7A58A] selection:text-white pb-12">
-      
+
       {/* Top Header / Welcome Section */}
       <div className="bg-[#292B2A] px-6 py-12 md:py-20 rounded-b-[48px] shadow-lg relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#A66A4C] rounded-full mix-blend-multiply filter blur-3xl opacity-20 translate-x-1/3 -translate-y-1/2" />
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#B7A58A] rounded-full mix-blend-multiply filter blur-3xl opacity-20 -translate-x-1/4 translate-y-1/4" />
-        
+
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
@@ -142,28 +142,28 @@ export default function Dashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 -mt-8 relative z-20 space-y-8">
-        
+
         {/* Operations: Receipt & Delivery */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
+
           {/* Receipt Card */}
           <div className="bg-white rounded-[32px] p-8 border-2 border-[#EAE6DE] shadow-sm hover:border-[#A66A4C] hover:shadow-[0_8px_30px_rgb(166,106,76,0.15)] transition-all duration-300 relative overflow-hidden flex flex-col gap-6">
             <h2 className="text-[28px] font-bold text-[#292B2A] font-['Outfit']">Receipt</h2>
-            
+
             <div className="flex items-center gap-8 mt-2">
-              <Button 
-                onClick={() => navigate('/operations/receipt')}
+              <Button
+                onClick={() => navigate('/receipts')}
                 className="h-14 px-8 rounded-xl bg-white border-2 border-[#A66A4C] text-[#A66A4C] hover:bg-[#A66A4C] hover:text-white font-semibold text-lg transition-all shadow-sm"
               >
                 {stats.receipt.pending} to receive
               </Button>
-              
-              <div className="flex flex-col text-[15px] font-medium text-[#73716C] gap-2">
+
+              <div className="flex flex-col text-[13px] font-medium text-[#73716C] gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-[#A66A4C] font-bold w-4">{stats.receipt.late}</span> Late
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#292B2A] font-bold w-4">{stats.receipt.operations}</span> operations
+                  <span className="text-[#292B2A] font-bold w-4">{stats.receipt.operations}</span> Operations
                 </div>
               </div>
             </div>
@@ -172,24 +172,24 @@ export default function Dashboard() {
           {/* Delivery Card */}
           <div className="bg-white rounded-[32px] p-8 border-2 border-[#EAE6DE] shadow-sm hover:border-[#A66A4C] hover:shadow-[0_8px_30px_rgb(166,106,76,0.15)] transition-all duration-300 relative overflow-hidden flex flex-col gap-6">
             <h2 className="text-[28px] font-bold text-[#292B2A] font-['Outfit']">Delivery</h2>
-            
+
             <div className="flex items-center gap-8 mt-2">
-              <Button 
-                onClick={() => navigate('/operations/delivery')}
+              <Button
+                onClick={() => navigate('/deliveries')}
                 className="h-14 px-8 rounded-xl bg-white border-2 border-[#A66A4C] text-[#A66A4C] hover:bg-[#A66A4C] hover:text-white font-semibold text-lg transition-all shadow-sm"
               >
                 {stats.delivery.pending} to Deliver
               </Button>
-              
-              <div className="flex flex-col text-[15px] font-medium text-[#73716C] gap-2">
+
+              <div className="flex flex-col text-[13px] font-medium text-[#73716C] gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-[#A66A4C] font-bold w-4">{stats.delivery.late}</span> Late
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#B7A58A] font-bold w-4">{stats.delivery.waiting}</span> waiting
+                  <span className="text-[#B7A58A] font-bold w-4">{stats.delivery.waiting}</span> Waiting
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#292B2A] font-bold w-4">{stats.delivery.operations}</span> operations
+                  <span className="text-[#292B2A] font-bold w-4">{stats.delivery.operations}</span> Operations
                 </div>
               </div>
             </div>
@@ -197,15 +197,7 @@ export default function Dashboard() {
 
         </div>
 
-        {/* Legend / Info */}
-        <div className="flex items-start gap-2 bg-[#EAE6DE]/50 p-4 rounded-xl border border-[#EAE6DE]">
-          <Info className="h-5 w-5 text-[#A66A4C] shrink-0 mt-0.5" />
-          <div className="text-[13px] font-medium text-[#73716C] space-y-1">
-            <p><span className="text-[#292B2A] font-semibold">Late:</span> schedule date &lt; today's date</p>
-            <p><span className="text-[#292B2A] font-semibold">Operations:</span> schedule date &gt; today's date</p>
-            <p><span className="text-[#292B2A] font-semibold">Waiting:</span> Waiting for the stocks</p>
-          </div>
-        </div>
+
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
@@ -248,7 +240,7 @@ export default function Dashboard() {
 
         {/* Charts & More Info Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
-          
+
           {/* Chart */}
           <Card className="bg-white border-[#EAE6DE] shadow-sm rounded-3xl overflow-hidden lg:col-span-2">
             <CardHeader className="bg-white pb-0">
@@ -262,7 +254,7 @@ export default function Dashboard() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EAE6DE" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#73716C', fontSize: 12 }} dy={10} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fill: '#73716C', fontSize: 12 }} />
-                      <RechartsTooltip 
+                      <RechartsTooltip
                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
                         cursor={{ fill: '#F5F2EC' }}
                       />
@@ -294,9 +286,8 @@ export default function Dashboard() {
                         <h4 className="text-[14px] font-bold text-[#292B2A]">{item.name}</h4>
                         <p className="text-[12px] text-[#73716C] mt-0.5">{item.stock} on hand</p>
                       </div>
-                      <div className={`text-[13px] font-bold px-2 py-0.5 rounded-lg ${
-                        item.freeToUse <= 5 ? 'text-[#A66A4C] bg-[#A66A4C]/10' : 'text-[#73716C]'
-                      }`}>
+                      <div className={`text-[13px] font-bold px-2 py-0.5 rounded-lg ${item.freeToUse <= 5 ? 'text-[#A66A4C] bg-[#A66A4C]/10' : 'text-[#73716C]'
+                        }`}>
                         {item.freeToUse} free
                       </div>
                     </div>
@@ -309,12 +300,12 @@ export default function Dashboard() {
                 )}
               </div>
               <div className="p-4 bg-[#F5F2EC]/30 border-t border-[#EAE6DE] flex justify-center mt-auto">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="text-[#A66A4C] hover:text-[#292B2A] hover:bg-transparent text-sm font-semibold h-auto p-0"
-                  onClick={() => navigate('/stock')}
+                  onClick={() => navigate('/products')}
                 >
-                  View full inventory
+                  View full stock
                 </Button>
               </div>
             </CardContent>
